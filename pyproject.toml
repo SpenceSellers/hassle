@@ -1,0 +1,14 @@
+[project]
+name = "hassle"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.3.1",
+    "httpx>=0.28.1",
+    "pydantic>=2.12.5",
+]
+
+[project.scripts]
+hassle = "hassle.main:main"
