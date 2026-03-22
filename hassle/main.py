@@ -36,7 +36,7 @@ def _time_ago(dt: datetime) -> str:
     return f"{seconds // 86400}d ago"
 
 
-@click.group()
+@click.group(context_settings={"max_content_width": 9999})
 def cli():
     """hassle — a Home Assistant CLI."""
 
