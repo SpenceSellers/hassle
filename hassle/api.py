@@ -1,11 +1,10 @@
 import os
 import sys
 from datetime import datetime
-
 import click
 import httpx
 
-from .models import EntityState, HistoryEntry
+from .models import Calendar, CalendarEvent, EntityState, HistoryEntry
 
 
 def get_client() -> httpx.Client:
@@ -43,6 +42,45 @@ def get_history(entity_ids: list[str], since: datetime | None = None) -> list[Hi
                 e.setdefault("attributes", {})
                 entries.append(HistoryEntry(**e))
         return sorted(entries, key=lambda e: e.last_changed, reverse=True)
+
+
+def get_calendars() -> list[Calendar]:
+    with get_client() as client:
+        resp = client.get("/calendars")
+        resp.raise_for_status()
+        return [Calendar(**c) for c in resp.json()]
+
+
+def get_calendar_events(entity_id: str, start: datetime, end: datetime) -> list[CalendarEvent]:
+    with get_client() as client:
+        resp = client.get(
+            f"/calendars/{entity_id}",
+            params={"start": start.isoformat(), "end": end.isoformat()},
+        )
+        resp.raise_for_status()
+        return [CalendarEvent(**e) for e in resp.json()]
+
+
+def create_calendar_event(entity_id: str, data: dict) -> None:
+    """Create a calendar event via the calendar.create_event service."""
+    payload: dict = {"entity_id": entity_id, "summary": data["summary"]}
+    start, end = data["start"], data["end"]
+    if "date" in start:
+        payload["start_date"] = start["date"]
+        payload["end_date"] = end["date"]
+    else:
+        dt = datetime.fromisoformat(start["dateTime"])
+        payload["start_date_time"] = dt.strftime("%Y-%m-%d %H:%M:%S")
+        dt = datetime.fromisoformat(end["dateTime"])
+        payload["end_date_time"] = dt.strftime("%Y-%m-%d %H:%M:%S")
+    if data.get("description"):
+        payload["description"] = data["description"]
+    if data.get("location"):
+        payload["location"] = data["location"]
+    with get_client() as client:
+        resp = client.post("/services/calendar/create_event", json=payload)
+        resp.raise_for_status()
+
 
 
 def call_service(domain: str, service: str, entity_id: str, params: dict) -> list[EntityState]:

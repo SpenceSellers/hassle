@@ -14,3 +14,19 @@ class HistoryEntry(BaseModel):
     state: str
     attributes: dict
     last_changed: datetime
+
+
+class Calendar(BaseModel):
+    entity_id: str
+    name: str
+
+
+class CalendarEvent(BaseModel):
+    summary: str
+    start: dict
+    end: dict
+    uid: str | None = None
+    description: str | None = None
+    location: str | None = None
+    recurrence_id: str | None = None
+    rrule: str | None = None
