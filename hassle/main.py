@@ -317,14 +317,16 @@ def _format_event_time(start: dict, end: dict) -> str:
         e = end["date"]
         end_dt = datetime.strptime(e, "%Y-%m-%d").date()
         start_dt = datetime.strptime(s, "%Y-%m-%d").date()
+        dow = start_dt.strftime("%a")
         if (end_dt - start_dt).days <= 1:
-            return f"{s} (all day)"
-        return f"{s} – {e} (all day)"
+            return f"{dow} {s} (all day)"
+        return f"{dow} {s} – {e} (all day)"
     s = datetime.fromisoformat(start["dateTime"])
     e = datetime.fromisoformat(end["dateTime"])
+    dow = s.strftime("%a")
     if s.date() == e.date():
-        return f"{s.strftime('%Y-%m-%d %H:%M')} – {e.strftime('%H:%M')}"
-    return f"{s.strftime('%Y-%m-%d %H:%M')} – {e.strftime('%Y-%m-%d %H:%M')}"
+        return f"{dow} {s.strftime('%Y-%m-%d %H:%M')} – {e.strftime('%H:%M')}"
+    return f"{dow} {s.strftime('%Y-%m-%d %H:%M')} – {e.strftime('%Y-%m-%d %H:%M')}"
 
 
 def _resolve_calendar(filters: list[str]):
@@ -420,6 +422,10 @@ def list_events(calendar, start_str, end_str, count, show_all):
     limit = None if show_all else (count or 50)
     displayed = all_events if limit is None else all_events[:limit]
 
+    start_label = start_dt.strftime("%a %Y-%m-%d")
+    end_label = end_dt.strftime("%a %Y-%m-%d")
+    click.echo(f"Events {start_label} – {end_label}:")
+
     for cal, ev in displayed:
         time_str = _format_event_time(ev.start, ev.end)
         cal_label = f"  [{cal.name}]" if len(calendars) > 1 else ""
@@ -428,8 +434,6 @@ def list_events(calendar, start_str, end_str, count, show_all):
             click.echo(f"  description: {ev.description}")
         if ev.location:
             click.echo(f"  location: {ev.location}")
-        if ev.uid:
-            click.echo(f"  uid: {ev.uid}")
 
     if limit is not None and total > limit:
         truncated = total - limit
