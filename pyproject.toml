@@ -10,5 +10,8 @@ dependencies = [
     "pydantic>=2.12.5",
 ]
 
+[tool.setuptools.packages.find]
+include = ["hassle*"]
+
 [project.scripts]
 hassle = "hassle.main:main"
