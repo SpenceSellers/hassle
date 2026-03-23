@@ -4,7 +4,7 @@ from datetime import datetime
 import click
 import httpx
 
-from .models import Calendar, CalendarEvent, EntityState, HistoryEntry
+from .models import Calendar, CalendarEvent, EntityState, HistoryEntry, TodoItem
 
 
 def get_client() -> httpx.Client:
@@ -81,6 +81,41 @@ def create_calendar_event(entity_id: str, data: dict) -> None:
         resp = client.post("/services/calendar/create_event", json=payload)
         resp.raise_for_status()
 
+
+
+def get_todo_items(entity_id: str, status: list[str] | None = None) -> list[TodoItem]:
+    payload: dict = {"entity_id": entity_id}
+    if status:
+        payload["status"] = status
+    with get_client() as client:
+        resp = client.post("/services/todo/get_items?return_response", json=payload)
+        resp.raise_for_status()
+        items = resp.json()["service_response"][entity_id]["items"]
+        return [TodoItem(**item) for item in items]
+
+
+def add_todo_item(entity_id: str, item: str) -> None:
+    with get_client() as client:
+        resp = client.post("/services/todo/add_item", json={"entity_id": entity_id, "item": item})
+        resp.raise_for_status()
+
+
+def update_todo_item(entity_id: str, item: str, **kwargs) -> None:
+    with get_client() as client:
+        resp = client.post("/services/todo/update_item", json={"entity_id": entity_id, "item": item, **kwargs})
+        resp.raise_for_status()
+
+
+def remove_todo_item(entity_id: str, item: str) -> None:
+    with get_client() as client:
+        resp = client.post("/services/todo/remove_item", json={"entity_id": entity_id, "item": item})
+        resp.raise_for_status()
+
+
+def remove_completed_todo_items(entity_id: str) -> None:
+    with get_client() as client:
+        resp = client.post("/services/todo/remove_completed_items", json={"entity_id": entity_id})
+        resp.raise_for_status()
 
 
 def call_service(domain: str, service: str, entity_id: str, params: dict) -> list[EntityState]:

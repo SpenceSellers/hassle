@@ -30,3 +30,12 @@ class CalendarEvent(BaseModel):
     location: str | None = None
     recurrence_id: str | None = None
     rrule: str | None = None
+
+
+class TodoItem(BaseModel):
+    summary: str
+    uid: str
+    status: str
+    description: str | None = None
+    due_date: str | None = None
+    due_datetime: str | None = None
