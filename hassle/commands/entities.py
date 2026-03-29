@@ -231,7 +231,15 @@ def set_attr(args):
 @click.argument("service")
 @click.argument("args", nargs=-1)
 def call(service, args):
-    """Call an arbitrary HA service: hassle call domain/service [filters] [key=value ...]"""
+    """Call an arbitrary HA service.
+
+    \b
+    hassle call domain/service [filters] [key=value ...]
+
+    Values are parsed as JSON, so arrays and numbers work:
+      hassle call light/turn_on kitchen brightness=200
+      hassle call light/turn_on kitchen hs_color=[30,100]
+    """
     if "/" not in service:
         raise click.UsageError("service must be in the form domain/service")
     domain, svc = service.split("/", 1)
@@ -239,6 +247,56 @@ def call(service, args):
     entity = _resolve_one(filters)
     api.call_service(domain, svc, entity.entity_id, params)
     click.echo(f"Called {service} on {entity.entity_id}.")
+
+
+@cli.command("services")
+@click.argument("target", required=False)
+def services(target):
+    """Browse available HA services.
+
+    \b
+    hassle services                  — list all domains
+    hassle services light            — list services in a domain
+    hassle services light/turn_on    — show fields for a service
+    """
+    all_services = api.get_services()
+    domain_map = {entry["domain"]: entry["services"] for entry in all_services}
+
+    if target is None:
+        for domain in sorted(domain_map):
+            count = len(domain_map[domain])
+            click.echo(f"{domain}  ({count} service{'s' if count != 1 else ''})")
+        return
+
+    if "/" in target:
+        domain, svc_name = target.split("/", 1)
+        services_in_domain = domain_map.get(domain)
+        if services_in_domain is None:
+            raise click.ClickException(f"domain '{domain}' not found")
+        svc = services_in_domain.get(svc_name)
+        if svc is None:
+            raise click.ClickException(f"service '{domain}/{svc_name}' not found")
+        desc = svc.get("description") or svc.get("name") or ""
+        click.echo(f"{domain}/{svc_name}" + (f": {desc}" if desc else ""))
+        fields = svc.get("fields", {})
+        if not fields:
+            click.echo("  (no fields)")
+        for field_name, field in fields.items():
+            field_desc = field.get("description") or field.get("name") or ""
+            example = field.get("example")
+            required = " (required)" if field.get("required") else ""
+            example_str = f"  e.g. {example}" if example is not None else ""
+            click.echo(f"  {field_name}{required}: {field_desc}{example_str}")
+    else:
+        domain = target
+        services_in_domain = domain_map.get(domain)
+        if services_in_domain is None:
+            raise click.ClickException(f"domain '{domain}' not found")
+        for svc_name, svc in sorted(services_in_domain.items()):
+            desc = svc.get("description") or svc.get("name") or ""
+            field_count = len(svc.get("fields", {}))
+            fields_str = f"  [{field_count} field{'s' if field_count != 1 else ''}]" if field_count else ""
+            click.echo(f"{domain}/{svc_name}{fields_str}" + (f": {desc}" if desc else ""))
 
 
 @cli.command("history")

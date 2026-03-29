@@ -118,14 +118,24 @@ def remove_completed_todo_items(entity_id: str) -> None:
         resp.raise_for_status()
 
 
+def get_services() -> list[dict]:
+    with get_client() as client:
+        resp = client.get("/services")
+        resp.raise_for_status()
+        return resp.json()
+
+
 def call_service(domain: str, service: str, entity_id: str, params: dict) -> list[EntityState]:
     with get_client() as client:
         resp = client.post(
             f"/services/{domain}/{service}",
             json={"entity_id": entity_id, **params},
         )
-        if resp.status_code == 404:
-            click.echo(f"Service {domain}/{service} not found.", err=True)
+        if not resp.is_success:
+            try:
+                detail = resp.json().get("message", resp.text)
+            except Exception:
+                detail = resp.text
+            click.echo(f"Error {resp.status_code}: {detail}", err=True)
             sys.exit(1)
-        resp.raise_for_status()
         return [EntityState(**e) for e in resp.json()]
