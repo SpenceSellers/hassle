@@ -37,9 +37,17 @@ def _time_ago(dt: datetime) -> str:
     return f"{seconds // 86400}d ago"
 
 
-def _split_args(args: tuple) -> tuple[list[str], dict[str, str]]:
+def _coerce_value(v: str):
+    import json
+    try:
+        return json.loads(v)
+    except (json.JSONDecodeError, ValueError):
+        return v
+
+
+def _split_args(args: tuple) -> tuple[list[str], dict]:
     filters = [a for a in args if "=" not in a]
-    params = dict(a.split("=", 1) for a in args if "=" in a)
+    params = {k: _coerce_value(v) for k, v in (a.split("=", 1) for a in args if "=" in a)}
     return filters, params
 
 
