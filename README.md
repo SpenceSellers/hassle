@@ -289,3 +289,10 @@ Usage: hassle toggle [OPTIONS] [FILTERS]...
 Options:
   --help  Show this message and exit.
 ```
+
+## Configuration
+
+`hassle` requires the following environment variables:
+
+- `HOMEASSISTANT_URL` — base URL of your Home Assistant instance (e.g. `http://homeassistant.local:8123`)
+- `HOMEASSISTANT_KEY` — a [long-lived access token](https://www.home-assistant.io/docs/authentication/#your-account-profile)
