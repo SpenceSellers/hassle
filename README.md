@@ -1,6 +1,6 @@
 # hassle
 
-A Home Assistant CLI.
+A [Home Assistant](https://www.home-assistant.io/) CLI.
 
 ## Installation
 
@@ -8,7 +8,13 @@ A Home Assistant CLI.
 uv tool install .
 ```
 
-Requires [uv](https://docs.astral.sh/uv/).
+or
+
+```sh
+pipx install .
+```
+
+Requires [uv](https://docs.astral.sh/uv/) or [pipx](https://pipx.pypa.io/).
 
 ## CLI reference
 
