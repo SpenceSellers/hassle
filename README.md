@@ -44,7 +44,7 @@ Commands:
   todo-clear    Remove all completed items from a todo list.
   todo-remove   Remove an item from a todo list by name.
   todo-uncheck  Mark a todo item as not completed.
-  todos         List todo lists, optionally filtered by name or entity ID...
+  todos         List todo lists with pending items, optionally filtered by name or entity ID...
   toggle        Toggle an entity.
 ```
 
@@ -273,7 +273,7 @@ Options:
 ```
 Usage: hassle todos [OPTIONS] [NAME...]
 
-  List todo lists, optionally filtered by name or entity ID substring.
+  List todo lists with pending items, optionally filtered by name or entity ID substring.
 
 Options:
   --help  Show this message and exit.

@@ -31,7 +31,7 @@ def _resolve_todo_list(filters: list[str]):
 @cli.command("todos")
 @click.argument("name", metavar="[NAME...]", nargs=-1)
 def list_todos(name):
-    """List todo lists, optionally filtered by name or entity ID substring."""
+    """List todo lists with pending items, optionally filtered by name or entity ID substring."""
     entities = [e for e in api.get_states() if e.entity_id.startswith("todo.")]
     if name:
         entities = [
@@ -43,6 +43,8 @@ def list_todos(name):
         count = e.attributes.get("items_not_completed", "")
         suffix = f"  ({count} pending)" if count != "" else ""
         click.echo(f"{e.entity_id}: {friendly}{suffix}")
+        for item in api.get_todo_items(e.entity_id, status=["needs_action"]):
+            click.echo(f"  {item.summary}")
 
 
 @cli.command("todo")
