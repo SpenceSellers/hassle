@@ -125,11 +125,12 @@ def get_services() -> list[dict]:
         return resp.json()
 
 
-def call_service(domain: str, service: str, entity_id: str, params: dict) -> list[EntityState]:
+def call_service(domain: str, service: str, entity_id: str | None, params: dict) -> list[EntityState]:
+    payload = {"entity_id": entity_id, **params} if entity_id is not None else dict(params)
     with get_client() as client:
         resp = client.post(
             f"/services/{domain}/{service}",
-            json={"entity_id": entity_id, **params},
+            json=payload,
         )
         if not resp.is_success:
             try:

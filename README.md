@@ -86,13 +86,18 @@ Usage: hassle call [OPTIONS] SERVICE [ARGS]...
   Call an arbitrary HA service.
 
   hassle call domain/service [filters] [key=value ...]
+  hassle call --no-target notify/mobile_app_phone message="Hello"
+
+  Use --no-target for services that do not need an entity. Filters cannot be
+  used with --no-target; only key=value params are accepted.
 
   Values are parsed as JSON, so arrays and numbers work:   hassle call
   light/turn_on kitchen brightness=200   hassle call light/turn_on kitchen
   hs_color=[30,100]
 
 Options:
-  --help  Show this message and exit.
+  --no-target  Skip entity lookup and send only the supplied key=value params.
+  --help       Show this message and exit.
 ```
 
 ### events

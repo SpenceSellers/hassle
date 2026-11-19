@@ -230,11 +230,16 @@ def set_attr(args):
 @cli.command("call")
 @click.argument("service")
 @click.argument("args", nargs=-1)
-def call(service, args):
+@click.option("--no-target", is_flag=True, help="Skip entity lookup and send only the supplied key=value params.")
+def call(service, args, no_target):
     """Call an arbitrary HA service.
 
     \b
     hassle call domain/service [filters] [key=value ...]
+    hassle call --no-target notify/mobile_app_phone message="Hello"
+
+    Use --no-target for services that do not need an entity. Filters cannot
+    be used with --no-target; only key=value params are accepted.
 
     Values are parsed as JSON, so arrays and numbers work:
       hassle call light/turn_on kitchen brightness=200
@@ -244,6 +249,12 @@ def call(service, args):
         raise click.UsageError("service must be in the form domain/service")
     domain, svc = service.split("/", 1)
     filters, params = _split_args(args)
+    if no_target:
+        if filters:
+            raise click.UsageError("--no-target cannot be used with entity filters; use key=value params only")
+        api.call_service(domain, svc, None, params)
+        click.echo(f"Called {service}.")
+        return
     entity = _resolve_one(filters)
     api.call_service(domain, svc, entity.entity_id, params)
     click.echo(f"Called {service} on {entity.entity_id}.")
